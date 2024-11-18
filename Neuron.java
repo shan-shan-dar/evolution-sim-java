@@ -38,6 +38,10 @@ public class Neuron {
         return activationValue;
     }
 
+    public Map<Neuron, Float> getOutputConnections() {
+        return outputConnections;
+    }
+
     public void printConnections() {
         for (Map.Entry<Neuron, Float> entry : outputConnections.entrySet()) {
             System.out.println("Connected to Neuron@" + entry.getKey().hashCode() + " with weight " + entry.getValue());

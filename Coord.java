@@ -8,6 +8,10 @@ public class Coord {
         this.y = y;
     }
 
+    public Coord move(int dx, int dy) {
+        return new Coord(x + dx, y + dy);
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;

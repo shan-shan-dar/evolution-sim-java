@@ -5,6 +5,7 @@ public class Dot {
 
     private boolean alive;
     private Coord position;
+    private Coord lastPosition;
 
     public Dot(int id, Coord birthPlace, Genome genome){
         this.genome = genome;
@@ -13,17 +14,39 @@ public class Dot {
         alive = true;
         this.id = id;
         this.position = birthPlace;
+        lastPosition = birthPlace;
     }
 
     public int getId() {
         return id;
     }
 
+    public Genome getGenome() {
+        return genome;
+    }
+
+    public Brain getBrain() {
+        return brain;
+    }
+
+    public boolean isAlive() {
+        return alive;
+    }
+
+    public void die() {
+        alive = false;
+    }
+
     public Coord getPosition() {
         return position;
     }
-
-    public void setPosition(Coord position) {
-        this.position = position;
+    
+    public Coord getLastPosition() {
+        return lastPosition;
     }
+
+    public void move(int dx, int dy) {
+        lastPosition = position;
+        position = position.move(dx, dy);
+    }  
 }

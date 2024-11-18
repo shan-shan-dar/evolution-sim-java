@@ -24,10 +24,20 @@ public class Genome {
         }
     }
 
-    public Genome randomGenome(){
+    public static Genome randomGenome(){
         Genome genome = new Genome();
         for (int i = 0; i < random.nextInt(MAX_GENES); i++) {
-            addGene(Gene.randomGene());
+            genome.addGene(Gene.randomGene());
+        }
+        return genome;
+    }
+
+    @Override
+    public String toString(){
+        String genome = "";
+        for (Gene gene : genes) {
+            genome += gene.toString();
+            genome += '\n';
         }
         return genome;
     }
