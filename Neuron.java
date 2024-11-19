@@ -15,15 +15,20 @@ public class Neuron {
         outputConnections.put(target, weight);
     }
 
-    public void receiveInput(float input, float weight) {
-        inputSum += input * weight;
+    public void addToInput(float input) {
+        inputSum += input;
+    }
+
+    // ONLY FOR INPUT NEURONS!!
+    public void directSetInput(float input) {
+        inputSum = input;
     }
 
     public void propagate() {
         for (Map.Entry<Neuron, Float> connection : outputConnections.entrySet()) {
             Neuron targetNeuron = connection.getKey();
             float weight = connection.getValue();
-            targetNeuron.receiveInput(getActivationValue(), weight);
+            targetNeuron.addToInput(getActivationValue() * weight);
         }
     }
 

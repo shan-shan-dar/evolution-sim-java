@@ -52,7 +52,7 @@ public class Brain {
 
         prune();
 
-        // toGraphviz("brainviz/afterPruning.dot");
+        toGraphviz("brainviz/afterPruning.dot");
 
         // System.out.println(Arrays.toString(inputs));
         // System.out.println(Arrays.toString(internals));
@@ -100,6 +100,22 @@ public class Brain {
             // 
 
             sourceNeuron.addOutputConnection(sinkNeuron, gene.getWeight());
+        }
+    }
+
+    public void feedForward() {
+        // assumes that input neurons have the correct inputSum from their corresponding input streams
+
+        for (Neuron neuron : inputs) {
+            if (neuron != null){
+                neuron.propagate();
+            }
+        }
+
+        for (Neuron neuron : internals) {
+            if (neuron != null){
+                neuron.propagate();
+            }
         }
     }
 
@@ -166,6 +182,8 @@ public class Brain {
         }
     }
 
+    // visualization
+
     public void toGraphviz(String fileName) throws IOException {
         StringBuilder dot = new StringBuilder();
         dot.append("digraph Brain {\n");
@@ -176,30 +194,33 @@ public class Brain {
         // Add input neurons
         for (int i = 0; i < inputs.length; i++) {
             if (inputs[i] != null) {
-                String label = "In" + i;
-                neuronLabels.put(inputs[i], label);
-                dot.append("  ").append(label)
-                    .append(" [shape=circle, style=filled, color=lightblue, fixedsize=true, width=0.5];\n");
+                String label = "In" + i + "\\n" + String.format("%.2f", inputs[i].getActivationValue());
+                neuronLabels.put(inputs[i], "In" + i);
+                dot.append("  ").append("In" + i)
+                    .append(" [label=\"").append(label)
+                    .append("\", shape=circle, style=filled, color=lightblue, fixedsize=true, width=0.5, fontsize=8];\n");
             }
         }
     
         // Add internal neurons
         for (int i = 0; i < internals.length; i++) {
             if (internals[i] != null) {
-                String label = "" + i;
-                neuronLabels.put(internals[i], label);
-                dot.append("  ").append(label)
-                    .append(" [shape=circle, style=filled, color=gray, fixedsize=true, width=0.5];\n");
+                String label = i + "\\n" + String.format("%.2f", internals[i].getActivationValue());
+                neuronLabels.put(internals[i], "" + i);
+                dot.append("  ").append(i)
+                    .append(" [label=\"").append(label)
+                    .append("\", shape=circle, style=filled, color=gray, fixedsize=true, width=0.5, fontsize=8];\n");
             }
         }
     
         // Add output neurons
         for (int i = 0; i < outputs.length; i++) {
             if (outputs[i] != null) {
-                String label = "Out" + i;
-                neuronLabels.put(outputs[i], label);
-                dot.append("  ").append(label)
-                    .append(" [shape=circle, style=filled, color=orange, fixedsize=true, width=0.5];\n");
+                String label = "Out" + i + "\\n" + String.format("%.2f", outputs[i].getActivationValue());
+                neuronLabels.put(outputs[i], "Out" + i);
+                dot.append("  ").append("Out" + i)
+                    .append(" [label=\"").append(label)
+                    .append("\", shape=circle, style=filled, color=orange, fixedsize=true, width=0.5, fontsize=8];\n");
             }
         }
     
@@ -223,7 +244,8 @@ public class Brain {
                         .append(thickness)
                         .append(", label=\"")
                         .append(weight)
-                        .append("\"];\n");
+                        .append("\", fontsize=8")
+                        .append("];\n");
                 }
             }
         }
@@ -234,5 +256,5 @@ public class Brain {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
             writer.write(dot.toString());
         }
-    }
+    }    
 }
