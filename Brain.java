@@ -38,7 +38,7 @@ public class Brain {
     private final Neuron[] internals;
     private final Neuron[] outputs;
     
-    public Brain(Genome genome) throws IOException{
+    public Brain(Genome genome, boolean hardPrune) throws IOException{
         
         // System.out.println(genome);
 
@@ -48,15 +48,17 @@ public class Brain {
 
         connect(genome);
 
-        // toGraphviz("brainviz/beforePruning.dot");
+        toGraphviz("beforePruning");
 
-        prune();
-
-        toGraphviz("brainviz/afterPruning.dot");
+        prune(hardPrune);
 
         // System.out.println(Arrays.toString(inputs));
         // System.out.println(Arrays.toString(internals));
         // System.out.println(Arrays.toString(outputs));
+    }
+
+    public Brain(Genome genome) throws IOException {
+        this(genome, false);
     }
 
     private void connect(Genome genome){
@@ -150,7 +152,10 @@ public class Brain {
         return false;
     }
 
-    private void prune(){
+    // hard pruning removes all internal neurons that don't have non-self input connections
+    private void prune(boolean hard){
+
+        // remove all internal neurons that do not have a path to output neurons
         for (int i = 0; i < internals.length; i++) {
             if (internals[i] == null){
                 continue;
@@ -172,6 +177,34 @@ public class Brain {
             }
         }
 
+        // THIS IS CURRENTLY IMPERFECT !!!
+        // IF A NO-INPUT INTERNAL NEURON CONNECTS TO ANOTHER NO-INPUT INTERNAL NEURON,
+        // THE FIRST WILL BE PRUNED, BUT THE SECOND WILL NOT
+
+        // it's getting too expensive to truly hard prune 
+
+        if (hard){
+            // Remove internal neurons with no incoming non-self connections
+            for (int i = 0; i < internals.length; i++) {
+                if (internals[i] == null) continue;
+
+                // Check if there are any incoming connections
+                if (!hasIncomingConnections(internals[i])) {
+                    // remove the neuron itself
+                    internals[i] = null;
+                }
+            }
+
+            // if any output neurons are left without incoming connections as a result of pruning, delete them
+            for (int i = 0; i < outputs.length; i++) {
+                if (outputs[i] != null){
+                    if (!hasIncomingConnections(outputs[i])){
+                        outputs[i] = null;
+                    }   
+                }
+            }
+        }
+
         // if any input neurons is left without outgoing connections as a result of pruning, delete them
         for (int i = 0; i < inputs.length; i++) {
             if (inputs[i] != null){
@@ -182,9 +215,28 @@ public class Brain {
         }
     }
 
+    private boolean hasIncomingConnections(Neuron targetNeuron) {
+        // Check input neurons
+        for (Neuron inputNeuron : inputs) {
+            if (inputNeuron != null && inputNeuron.getOutputConnections().containsKey(targetNeuron)) {
+                return true;
+            }
+        }
+    
+        // Check other internal neurons
+        for (Neuron internalNeuron : internals) {
+            if (internalNeuron != null && internalNeuron.getOutputConnections().containsKey(targetNeuron) && internalNeuron != targetNeuron) {
+                return true;
+            }
+        }
+    
+        return false;
+    }
+
     // visualization
 
     public void toGraphviz(String fileName) throws IOException {
+        String fullName = "brainviz/dot/" + fileName + ".dot";
         StringBuilder dot = new StringBuilder();
         dot.append("digraph Brain {\n");
     
@@ -253,7 +305,7 @@ public class Brain {
         dot.append("}\n");
     
         // Write to file
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fullName))) {
             writer.write(dot.toString());
         }
     }    

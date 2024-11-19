@@ -3,15 +3,16 @@ import java.io.IOException;
 public class TestMain {
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        Brain b = new Brain(Genome.randomGenome());
-        b.feedForward();
-        b.toGraphviz("brainviz/ffOnce.dot");
-        b.feedForward();
-        b.toGraphviz("brainviz/ffTwice.dot");
         
-        renderDotFile("brainviz/afterPruning.dot", "brainviz/afterPruning.png");
-        renderDotFile("brainviz/ffOnce.dot", "brainviz/ffOnce.png");
-        renderDotFile("brainviz/ffTwice.dot", "brainviz/ffTwice.png");
+        Genome g = Genome.randomGenome();
+        Brain b1 = new Brain(g);
+        b1.toGraphviz("afterSoftPruning");
+        Brain b2 = new Brain(g, true);
+        b2.toGraphviz("afterHardPruning");
+        
+        renderDotFile("beforePruning");
+        renderDotFile("afterSoftPruning");
+        renderDotFile("afterHardPruning");
     }
 
     private static void renderDotFile(String inputDotFile, String outputPngFile) throws IOException, InterruptedException {
@@ -21,6 +22,10 @@ public class TestMain {
         if (exitCode != 0) {
             System.err.println("Error rendering " + inputDotFile + ". Exit code: " + exitCode);
         }
+    }
+
+    private static void renderDotFile(String fileName) throws IOException, InterruptedException {
+        renderDotFile("brainviz/dot/" + fileName + ".dot", "brainviz/" + fileName + ".png");
     }
     
 }

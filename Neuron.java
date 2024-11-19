@@ -7,7 +7,7 @@ public class Neuron {
     private final HashMap<Neuron, Float> outputConnections;
 
     public Neuron(){
-        this.inputSum = arctanh(0.5f);
+        this.inputSum = arctanh(0);
         this.outputConnections = new HashMap<>();
     }
 
