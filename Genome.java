@@ -6,7 +6,9 @@ public class Genome {
 
     public static final Random random = new Random();
 
+    // inclusive range
     public static final int MAX_GENES = 12;
+    public static final int MIN_GENES = 4;
 
     private final ArrayList<Gene> genes;
 
@@ -26,7 +28,7 @@ public class Genome {
 
     public static Genome randomGenome(){
         Genome genome = new Genome();
-        for (int i = 0; i < random.nextInt(MAX_GENES); i++) {
+        for (int i = 0; i < MIN_GENES + random.nextInt(MAX_GENES - MIN_GENES + 1); i++) {
             genome.addGene(Gene.randomGene());
         }
         return genome;

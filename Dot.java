@@ -1,3 +1,6 @@
+
+import java.io.IOException;
+
 public class Dot {
     private final int id;
     private final Genome genome;
@@ -7,7 +10,7 @@ public class Dot {
     private Coord position;
     private Coord lastPosition;
 
-    public Dot(int id, Coord birthPlace, Genome genome){
+    public Dot(int id, Coord birthPlace, Genome genome) throws IOException{
         this.genome = genome;
         this.brain = new Brain(genome);
 

@@ -3,13 +3,11 @@ import java.util.Map;
 
 public class Neuron {
     private float inputSum;
-    private float activationValue;
 
     private final HashMap<Neuron, Float> outputConnections;
 
     public Neuron(){
-        this.inputSum = 0.0f;
-        this.activationValue = 0.0f;
+        this.inputSum = arctanh(0.5f);
         this.outputConnections = new HashMap<>();
     }
 
@@ -21,21 +19,16 @@ public class Neuron {
         inputSum += input * weight;
     }
 
-    public void activate() {
-        activationValue = (float) Math.tanh(inputSum); // Example activation function
-        inputSum = 0.0f;
-    }
-
     public void propagate() {
         for (Map.Entry<Neuron, Float> connection : outputConnections.entrySet()) {
             Neuron targetNeuron = connection.getKey();
             float weight = connection.getValue();
-            targetNeuron.receiveInput(activationValue, weight);
+            targetNeuron.receiveInput(getActivationValue(), weight);
         }
     }
 
     public float getActivationValue() {
-        return activationValue;
+        return (float) Math.tanh(inputSum);
     }
 
     public Map<Neuron, Float> getOutputConnections() {
@@ -50,6 +43,14 @@ public class Neuron {
 
     @Override
     public String toString() {
-        return "Neuron@" + this.hashCode() + " [activation=" + activationValue + "]";
+        return "Neuron@" + this.hashCode() + " [inputSum=" + inputSum + ", activation=" + getActivationValue() + "]";
     }
+
+    private static float arctanh(float x) {
+        if (x <= -1 || x >= 1) {
+            throw new IllegalArgumentException("Input for arctanh must be in the range (-1, 1).");
+        }
+        return (float) (0.5 * Math.log((1 + x) / (1 - x)));
+    }
+
 }
