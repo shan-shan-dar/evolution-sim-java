@@ -8,7 +8,7 @@ public class Genome {
 
     // inclusive range
     public static final int MAX_GENES = 12;
-    public static final int MIN_GENES = 4;
+    public static final int MIN_GENES = 8;
 
     private final ArrayList<Gene> genes;
 

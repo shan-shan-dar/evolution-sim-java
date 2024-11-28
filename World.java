@@ -23,13 +23,7 @@ public class World{
         this.data = new int[sizeX][sizeY];
     }
 
-    public void zeroFill() {
-        for (int[] col : data) {
-            for (int i = 0; i < data[0].length; i++) {
-                col[i] = EMPTY;
-            }
-        }
-    }
+    
 
     public boolean isInBounds(Coord pos) {
         return pos.x >= 0 && pos.x < sizeX && pos.y >= 0 && pos.y < sizeY;
@@ -63,20 +57,6 @@ public class World{
             pos = new Coord(x, y);
         } while (!isEmptyAt(pos));
         return pos;
-    }
-
-    public void printGrid() {
-        for (int y = 0; y < sizeY; y++) {
-            for (int x = 0; x < sizeX; x++) {
-                Coord pos = new Coord(x, y);
-                if (get(pos) == EMPTY) {
-                    System.out.print(".");
-                } else {
-                    System.out.print(get(pos)); // Occupied
-                }
-            }
-            System.out.println();
-        }
     }
 
     // Getters for grid dimensions

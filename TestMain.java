@@ -5,14 +5,12 @@ public class TestMain {
     public static void main(String[] args) throws IOException, InterruptedException {
         
         Genome g = Genome.randomGenome();
-        Brain b1 = new Brain(g);
-        b1.toGraphviz("afterSoftPruning");
-        Brain b2 = new Brain(g, true);
-        b2.toGraphviz("afterHardPruning");
+
+        System.out.println(g);
+        Brain b = new Brain(g);
         
         renderDotFile("beforePruning");
-        renderDotFile("afterSoftPruning");
-        renderDotFile("afterHardPruning");
+        renderDotFile("afterPruning");
     }
 
     private static void renderDotFile(String inputDotFile, String outputPngFile) throws IOException, InterruptedException {

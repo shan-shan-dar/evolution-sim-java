@@ -9,6 +9,8 @@ public class Dot {
     private boolean alive;
     private Coord position;
     private Coord lastPosition;
+    private int sensingRadius;
+    private float responsiveness;
 
     public Dot(int id, Coord birthPlace, Genome genome) throws IOException{
         this.genome = genome;
@@ -18,6 +20,12 @@ public class Dot {
         this.id = id;
         this.position = birthPlace;
         lastPosition = birthPlace;
+        sensingRadius = 10;
+        responsiveness = 0.5f;
+    }
+
+    public void sense() {
+
     }
 
     public int getId() {
@@ -52,4 +60,8 @@ public class Dot {
         lastPosition = position;
         position = position.move(dx, dy);
     }  
+
+    public boolean isSameAs(Dot another){
+        return this.id == another.id;
+    }
 }

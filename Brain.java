@@ -1,6 +1,7 @@
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -16,20 +17,27 @@ public class Brain {
      * 1. y position
      * 2. last x movement
      * 3. last y movement
-     * 4. clock (simulation step #)
+     * 4. age
      * 5. random
+     * 6. oscillator
+     * 7. blockage in forward (most recent) direction in sensing radius
+     * 8. distance from x borders
+     * 9. distance from y borders
+     * 10. population density in sensing radius
      */
-    public static final int NUM_INPUTS = 6;
+    public static final int NUM_INPUTS = 11;
 
     /*
-     * 0. move randomly
-     * 1. x movement
-     * 2. y movement
-     * 3. continue last direction of movement
+     * 0. x movement
+     * 1. y movement
+     * 2. continue last direction of movement
+     * 3. reverse last direction of movement
+     * 4. set oscillator period
+     * 5. set responsiveness
      */
-    public static final int NUM_OUTPUTS = 4;
+    public static final int NUM_OUTPUTS = 6;
 
-    public static final int NUM_INTERNALS = 2;
+    public static final int NUM_INTERNALS = 3;
 
     public static final int MAX_POSSIBLE_CONNECTIONS = (NUM_INPUTS + NUM_INTERNALS) * (NUM_OUTPUTS + NUM_INTERNALS);
 
@@ -38,7 +46,7 @@ public class Brain {
     private final Neuron[] internals;
     private final Neuron[] outputs;
     
-    public Brain(Genome genome, boolean hardPrune) throws IOException{
+    public Brain(Genome genome) throws IOException{
         
         // System.out.println(genome);
 
@@ -50,15 +58,13 @@ public class Brain {
 
         toGraphviz("beforePruning");
 
-        prune(hardPrune);
+        prune();
 
-        // System.out.println(Arrays.toString(inputs));
-        // System.out.println(Arrays.toString(internals));
-        // System.out.println(Arrays.toString(outputs));
-    }
+        toGraphviz("afterPruning");
 
-    public Brain(Genome genome) throws IOException {
-        this(genome, false);
+        System.out.println(Arrays.toString(inputs));
+        System.out.println(Arrays.toString(internals));
+        System.out.println(Arrays.toString(outputs));
     }
 
     private void connect(Genome genome){
@@ -102,6 +108,7 @@ public class Brain {
             // 
 
             sourceNeuron.addOutputConnection(sinkNeuron, gene.getWeight());
+            sinkNeuron.addInputConnection(sourceNeuron);
         }
     }
 
@@ -152,86 +159,76 @@ public class Brain {
         return false;
     }
 
-    // hard pruning removes all internal neurons that don't have non-self input connections
-    private void prune(boolean hard){
+    private boolean inputCanReach(Neuron neuron, Set<Neuron> visited) {
+        if (neuron == null) return false;
 
-        // remove all internal neurons that do not have a path to output neurons
-        for (int i = 0; i < internals.length; i++) {
-            if (internals[i] == null){
-                continue;
-            }
-            if (!canReachOutput(internals[i], new HashSet<>())){
-                // remove all connections into it
-                for (Neuron inputNeuron : inputs) {
-                    if (inputNeuron != null){
-                        inputNeuron.getOutputConnections().remove(internals[i]);
-                    }
-                }
-                for (Neuron internalNeuron : internals) {
-                    if (internalNeuron != null){
-                        internalNeuron.getOutputConnections().remove(internals[i]);
-                    }
-                }
-                // remove the neuron itself
-                internals[i] = null;
-            }
+        // If we've already visited this neuron, skip exploring its connections to avoid infinite loops
+        if (visited.contains(neuron)) {
+            return false;
         }
 
-        // THIS IS CURRENTLY IMPERFECT !!!
-        // IF A NO-INPUT INTERNAL NEURON CONNECTS TO ANOTHER NO-INPUT INTERNAL NEURON,
-        // THE FIRST WILL BE PRUNED, BUT THE SECOND WILL NOT
+        // Mark the neuron as visited to prevent cycles
+        visited.add(neuron);
 
-        // it's getting too expensive to truly hard prune 
-
-        if (hard){
-            // Remove internal neurons with no incoming non-self connections
-            for (int i = 0; i < internals.length; i++) {
-                if (internals[i] == null) continue;
-
-                // Check if there are any incoming connections
-                if (!hasIncomingConnections(internals[i])) {
-                    // remove the neuron itself
-                    internals[i] = null;
-                }
-            }
-
-            // if any output neurons are left without incoming connections as a result of pruning, delete them
-            for (int i = 0; i < outputs.length; i++) {
-                if (outputs[i] != null){
-                    if (!hasIncomingConnections(outputs[i])){
-                        outputs[i] = null;
-                    }   
-                }
-            }
-        }
-
-        // if any input neurons is left without outgoing connections as a result of pruning, delete them
-        for (int i = 0; i < inputs.length; i++) {
-            if (inputs[i] != null){
-                if (inputs[i].getOutputConnections().isEmpty()){
-                    inputs[i] = null;
-                }   
-            }
-        }
-    }
-
-    private boolean hasIncomingConnections(Neuron targetNeuron) {
-        // Check input neurons
-        for (Neuron inputNeuron : inputs) {
-            if (inputNeuron != null && inputNeuron.getOutputConnections().containsKey(targetNeuron)) {
+        // If this neuron is an input, an input can reach it
+        for (Neuron input : inputs) {
+            if (neuron == input) {
                 return true;
             }
         }
-    
-        // Check other internal neurons
-        for (Neuron internalNeuron : internals) {
-            if (internalNeuron != null && internalNeuron.getOutputConnections().containsKey(targetNeuron) && internalNeuron != targetNeuron) {
-                return true;
+
+        // Explore all incoming connections
+        for (Neuron prev : neuron.getInputConnections()) {
+            if (inputCanReach(prev, visited)) {
+                return true; // Found a path to an input neuron
             }
         }
-    
+
+        // If no path to an input neuron was found, return false
         return false;
     }
+
+    private void prune() {
+    // Remove all internal neurons that do not have a path to output neurons or to input neurons
+    for (int i = 0; i < internals.length; i++) {
+        if (internals[i] == null) continue;
+
+        if (!canReachOutput(internals[i], new HashSet<>()) || !inputCanReach(internals[i], new HashSet<>())) {
+            // Remove all connections into it
+            for (Neuron sourceNeuron : internals[i].getInputConnections()) {
+                System.out.println("Removing connection from " + sourceNeuron + " to " + internals[i]);
+                sourceNeuron.getOutputConnections().remove(internals[i]);
+            }
+
+            // Remove all connections from it
+            for (Neuron sinkNeuron : internals[i].getOutputConnections().keySet()) {
+                System.out.println("Removing connection from " + internals[i] + " to " + sinkNeuron);
+                sinkNeuron.getInputConnections().remove(internals[i]);
+            }
+
+            // Remove the neuron itself
+            internals[i] = null;
+        }
+    }
+
+    // Prune input neurons that cannot reach any output
+    for (int i = 0; i < inputs.length; i++) {
+        if (inputs[i] == null) continue;
+
+        if (inputs[i].getOutputConnections().isEmpty()) {
+            inputs[i] = null;
+        }
+    }
+
+    // Prune output neurons that cannot be reached by any input
+    for (int i = 0; i < outputs.length; i++) {
+        if (outputs[i] == null) continue;
+
+        if (outputs[i].getInputConnections().isEmpty()) {
+            outputs[i] = null;
+        }
+    }
+}
 
     // visualization
 

@@ -60,11 +60,6 @@ public class Gene {
         return encodedGene;
     }
 
-    // Debugging: Display encoded gene in hex
-    public String getEncodedGeneHex() {
-        return Integer.toHexString(encodedGene);
-    }
-
     @Override
     public String toString() {
         return String.format(
@@ -74,7 +69,7 @@ public class Gene {
             getSinkType(),
             getSinkId(),
             getWeight(),
-            getEncodedGeneHex()
+            getEncodedGene()
         );
     }
 }
