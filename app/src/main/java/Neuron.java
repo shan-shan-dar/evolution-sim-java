@@ -17,7 +17,9 @@ public class Neuron {
     }
 
     public void addInputConnection(Neuron source) {
-        inputConnections.add(source);
+        if (!inputConnections.contains(source)) {
+            inputConnections.add(source);
+        }
     }
 
     public void addOutputConnection(Neuron target, float weight) {
@@ -55,19 +57,23 @@ public class Neuron {
 
     public void printInputConnections() {
         for (Neuron entry : inputConnections) {
-            System.out.println("Connected from Neuron@" + entry);
+            System.out.println(this + "Connected from " + entry);
         }
     }
 
     public void printOutputConnections() {
         for (Map.Entry<Neuron, Float> entry : outputConnections.entrySet()) {
-            System.out.println("Connected to Neuron@" + entry.getKey().hashCode() + " with weight " + entry.getValue());
+            System.out.println(this + "Connected to " + entry.getKey().hashCode() + " with weight " + entry.getValue());
         }
     }
 
     @Override
     public String toString() {
-        return "Neuron@" + this.hashCode() + " [inputSum=" + inputSum + ", activation=" + getActivationValue() + "]";
+        return "Neuron@" + this.hashCode();// + " [inputSum=" + inputSum + ", activation=" + getActivationValue() + "]";
+    }
+
+    public String toShortString() {
+        return "" + this.hashCode();
     }
 
     public static float arctanh(float x) {

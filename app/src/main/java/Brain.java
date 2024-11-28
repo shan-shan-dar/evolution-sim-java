@@ -203,10 +203,16 @@ public class Brain {
             // Remove all connections from it
             for (Neuron sinkNeuron : internals[i].getOutputConnections().keySet()) {
                 System.out.println("Removing connection from " + internals[i] + " to " + sinkNeuron);
+                System.out.println("Before:");
+                sinkNeuron.printInputConnections();
                 sinkNeuron.getInputConnections().remove(internals[i]);
+                System.out.println("After:");
+                sinkNeuron.printInputConnections();
+                System.out.println();
             }
 
             // Remove the neuron itself
+            System.out.println("Removing " + internals[i]);
             internals[i] = null;
         }
     }
@@ -216,6 +222,7 @@ public class Brain {
         if (inputs[i] == null) continue;
 
         if (inputs[i].getOutputConnections().isEmpty()) {
+            System.out.println("Removing " + inputs[i]);
             inputs[i] = null;
         }
     }
@@ -225,6 +232,7 @@ public class Brain {
         if (outputs[i] == null) continue;
 
         if (outputs[i].getInputConnections().isEmpty()) {
+            System.out.println("Removing " + outputs[i]);
             outputs[i] = null;
         }
     }
@@ -233,7 +241,7 @@ public class Brain {
     // visualization
 
     public void toGraphviz(String fileName) throws IOException {
-        String fullName = "brainviz/dot/" + fileName + ".dot";
+        String fullName = "build/generated/brainviz/dot/" + fileName + ".dot";
         StringBuilder dot = new StringBuilder();
         dot.append("digraph Brain {\n");
     
@@ -243,7 +251,8 @@ public class Brain {
         // Add input neurons
         for (int i = 0; i < inputs.length; i++) {
             if (inputs[i] != null) {
-                String label = "In" + i + "\\n" + String.format("%.2f", inputs[i].getActivationValue());
+                // String label = "In" + i + "\\n" + String.format("%.2f", inputs[i].getActivationValue());
+                String label = "In" + i + "\\n" + inputs[i].toShortString();
                 neuronLabels.put(inputs[i], "In" + i);
                 dot.append("  ").append("In" + i)
                     .append(" [label=\"").append(label)
@@ -254,7 +263,8 @@ public class Brain {
         // Add internal neurons
         for (int i = 0; i < internals.length; i++) {
             if (internals[i] != null) {
-                String label = i + "\\n" + String.format("%.2f", internals[i].getActivationValue());
+                // String label = i + "\\n" + String.format("%.2f", internals[i].getActivationValue());
+                String label = "" + i + "\\n" + internals[i].toShortString();
                 neuronLabels.put(internals[i], "" + i);
                 dot.append("  ").append(i)
                     .append(" [label=\"").append(label)
@@ -265,7 +275,8 @@ public class Brain {
         // Add output neurons
         for (int i = 0; i < outputs.length; i++) {
             if (outputs[i] != null) {
-                String label = "Out" + i + "\\n" + String.format("%.2f", outputs[i].getActivationValue());
+                // String label = "Out" + i + "\\n" + String.format("%.2f", outputs[i].getActivationValue());
+                String label = "Out" + i + "\\n" + outputs[i].toShortString();
                 neuronLabels.put(outputs[i], "Out" + i);
                 dot.append("  ").append("Out" + i)
                     .append(" [label=\"").append(label)
@@ -293,7 +304,7 @@ public class Brain {
                         .append(thickness)
                         .append(", label=\"")
                         .append(weight)
-                        .append("\", fontsize=8")
+                        .append("\", fontsize=6")
                         .append("];\n");
                 }
             }

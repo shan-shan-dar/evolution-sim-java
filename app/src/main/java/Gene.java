@@ -63,7 +63,7 @@ public class Gene {
     @Override
     public String toString() {
         return String.format(
-            "Gene{SourceType=%d, SourceId=%d, SinkType=%d, SinkId=%d, Weight=%.4f, Encoded=0x%s}",
+            "Gene{SourceType=%d, SourceId=%d, SinkType=%d, SinkId=%d, Weight=%.4f, Encoded=%d}",
             getSourceType(),
             getSourceId(),
             getSinkType(),

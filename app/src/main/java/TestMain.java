@@ -23,7 +23,7 @@ public class TestMain {
     }
 
     private static void renderDotFile(String fileName) throws IOException, InterruptedException {
-        renderDotFile("brainviz/dot/" + fileName + ".dot", "brainviz/" + fileName + ".png");
+        renderDotFile("build/generated/brainviz/dot/" + fileName + ".dot", "build/generated/brainviz/" + fileName + ".png");
     }
     
 }
