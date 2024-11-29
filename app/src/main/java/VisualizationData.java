@@ -11,6 +11,8 @@ public class VisualizationData {
 
     public VisualizationData() throws JSONException {
         this.data = new JSONObject();
+        this.data.put("width", Simulation.WORLD_SIZE_X); // Add world width
+        this.data.put("height", Simulation.WORLD_SIZE_Y); // Add world height
         this.data.put("steps", new JSONArray());
     }
 

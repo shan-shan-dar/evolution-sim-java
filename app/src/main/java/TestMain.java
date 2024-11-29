@@ -1,9 +1,16 @@
 import java.io.IOException;
 
+import org.json.JSONException;
+
 public class TestMain {
 
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) throws IOException, InterruptedException, JSONException {
         
+        Simulation s = new Simulation();
+
+        s.run();
+
+        /* 
         World w = new World(10, 10);
 
         Genome g = Genome.randomGenome();
@@ -13,15 +20,35 @@ public class TestMain {
 
         Brain b = d.getBrain();
 
-        b.sense(d, w);
+        d.sense(w);
         b.toGraphviz("afterSensing1");
 
-        b.feedForward();
+        d.process();
         b.toGraphviz("afterFF1");
+
+        d.act(w);
+        b.toGraphviz("afterActing1");
+
+        //
+
+        d.sense(w);
+        b.toGraphviz("afterSensing2");
+
+        d.process();
+        b.toGraphviz("afterFF2");
+
+        d.act(w);
+        b.toGraphviz("afterActing2");
 
         renderDotFile("afterPruning");
         renderDotFile("afterSensing1");
         renderDotFile("afterFF1");
+        renderDotFile("afterActing1");
+        renderDotFile("afterSensing2");
+        renderDotFile("afterFF2");
+        renderDotFile("afterActing2");
+
+        */
     }
 
     private static void renderDotFile(String inputDotFile, String outputPngFile) throws IOException, InterruptedException {

@@ -122,12 +122,7 @@ public class Brain {
     }
 
     public void act(Dot dot, World world) {
-        for (int i = 0; i < outputs.length; i++) {
-            if (outputs[i] == null){
-                continue;
-            }
-            Actor.act(dot, world, Actor.ActionType.values()[i], outputs[i].getActivationValue());
-        }
+        Actor.act(dot, world, outputs);
     }
 
     

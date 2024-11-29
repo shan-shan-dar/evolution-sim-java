@@ -7,7 +7,9 @@ public class SimStep {
     public static void run(World world, ArrayList<Dot> dots){
         // do all running logic based on world and dots, and consequently modify world and dots as needed
         for (Dot dot : dots) {
-            
+            dot.sense(world);
+            dot.process();
+            dot.act(world);
         }
     }
 }
