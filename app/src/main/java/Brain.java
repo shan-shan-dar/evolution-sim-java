@@ -1,7 +1,6 @@
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -25,7 +24,7 @@ public class Brain {
      * 9. distance from y borders
      * 10. population density in sensing radius
      */
-    public static final int NUM_INPUTS = 11;
+    public static final int NUM_INPUTS = Sensor.SenseType.values().length;
 
     /*
      * 0. x movement
@@ -35,7 +34,7 @@ public class Brain {
      * 4. set oscillator period
      * 5. set responsiveness
      */
-    public static final int NUM_OUTPUTS = 6;
+    public static final int NUM_OUTPUTS = Actor.ActionType.values().length;
 
     public static final int NUM_INTERNALS = 3;
 
@@ -62,9 +61,9 @@ public class Brain {
 
         toGraphviz("afterPruning");
 
-        System.out.println(Arrays.toString(inputs));
-        System.out.println(Arrays.toString(internals));
-        System.out.println(Arrays.toString(outputs));
+        // System.out.println(Arrays.toString(inputs));
+        // System.out.println(Arrays.toString(internals));
+        // System.out.println(Arrays.toString(outputs));
     }
 
     private void connect(Genome genome){
@@ -107,26 +106,64 @@ public class Brain {
 
             // 
 
-            sourceNeuron.addOutputConnection(sinkNeuron, gene.getWeight());
-            sinkNeuron.addInputConnection(sourceNeuron);
+            sourceNeuron.addOutputConnection(sinkNeuron);
+            sinkNeuron.addInputConnection(sourceNeuron, gene.getWeight());
         }
     }
 
-    public void feedForward() {
-        // assumes that input neurons have the correct inputSum from their corresponding input streams
-
-        for (Neuron neuron : inputs) {
-            if (neuron != null){
-                neuron.propagate();
+    public void sense(Dot dot, World world) {
+        for (int i = 0; i < inputs.length; i++) {
+            if (inputs[i] == null){
+                continue;
             }
+            System.out.println("Input[" + i + "]");
+            inputs[i].setActivation(Sensor.getSenseValue(dot, world, Sensor.SenseType.values()[i]));
         }
+    }
+
+    public void act(Dot dot, World world) {
+        for (int i = 0; i < outputs.length; i++) {
+            if (outputs[i] == null){
+                continue;
+            }
+            Actor.act(dot, world, Actor.ActionType.values()[i], outputs[i].getActivationValue());
+        }
+    }
+
+    
+    public void feedForward() {
+        // call only after calling sense()
 
         for (Neuron neuron : internals) {
-            if (neuron != null){
-                neuron.propagate();
+            if (neuron == null){
+                continue;
             }
+
+            float inputSum = 0;
+
+            for (Map.Entry<Neuron, Float> connection : neuron.getInputConnections().entrySet()) {
+                inputSum += connection.getKey().getActivationValue() * connection.getValue();
+            }
+
+            neuron.setActivation(Neuron.activationFunction(inputSum));
+        }
+
+
+        for (Neuron neuron : outputs) {
+            if (neuron == null){
+                continue;
+            }
+
+            float inputSum = 0;
+
+            for (Map.Entry<Neuron, Float> connection : neuron.getInputConnections().entrySet()) {
+                inputSum += connection.getKey().getActivationValue() * connection.getValue();
+            }
+
+            neuron.setActivation(Neuron.activationFunction(inputSum));
         }
     }
+    
 
     // Pruning
 
@@ -149,7 +186,7 @@ public class Brain {
         }
 
         // Explore all outgoing connections
-        for (Neuron next : neuron.getOutputConnections().keySet()) {
+        for (Neuron next : neuron.getOutputConnections()) {
             if (canReachOutput(next, visited)) {
                 return true; // Found a path to an output neuron
             }
@@ -178,7 +215,7 @@ public class Brain {
         }
 
         // Explore all incoming connections
-        for (Neuron prev : neuron.getInputConnections()) {
+        for (Neuron prev : neuron.getInputConnections().keySet()) {
             if (inputCanReach(prev, visited)) {
                 return true; // Found a path to an input neuron
             }
@@ -189,54 +226,54 @@ public class Brain {
     }
 
     private void prune() {
-    // Remove all internal neurons that do not have a path to output neurons or to input neurons
-    for (int i = 0; i < internals.length; i++) {
-        if (internals[i] == null) continue;
+        // Remove all internal neurons that do not have a path to output neurons or to input neurons
+        for (int i = 0; i < internals.length; i++) {
+            if (internals[i] == null) continue;
 
-        if (!canReachOutput(internals[i], new HashSet<>()) || !inputCanReach(internals[i], new HashSet<>())) {
-            // Remove all connections into it
-            for (Neuron sourceNeuron : internals[i].getInputConnections()) {
-                System.out.println("Removing connection from " + sourceNeuron + " to " + internals[i]);
-                sourceNeuron.getOutputConnections().remove(internals[i]);
+            if (!canReachOutput(internals[i], new HashSet<>()) || !inputCanReach(internals[i], new HashSet<>())) {
+                // Remove all connections into it
+                for (Neuron sourceNeuron : internals[i].getInputConnections().keySet()) {
+                    // System.out.println("Removing connection from " + sourceNeuron + " to " + internals[i]);
+                    sourceNeuron.getOutputConnections().remove(internals[i]);
+                }
+
+                // Remove all connections from it
+                for (Neuron sinkNeuron : internals[i].getOutputConnections()) {
+                    // System.out.println("Removing connection from " + internals[i] + " to " + sinkNeuron);
+                    // System.out.println("Before:");
+                    sinkNeuron.printInputConnections();
+                    sinkNeuron.getInputConnections().remove(internals[i]);
+                    // System.out.println("After:");
+                    sinkNeuron.printInputConnections();
+                    // System.out.println();
+                }
+
+                // Remove the neuron itself
+                // System.out.println("Removing " + internals[i]);
+                internals[i] = null;
             }
+        }
 
-            // Remove all connections from it
-            for (Neuron sinkNeuron : internals[i].getOutputConnections().keySet()) {
-                System.out.println("Removing connection from " + internals[i] + " to " + sinkNeuron);
-                System.out.println("Before:");
-                sinkNeuron.printInputConnections();
-                sinkNeuron.getInputConnections().remove(internals[i]);
-                System.out.println("After:");
-                sinkNeuron.printInputConnections();
-                System.out.println();
+        // Prune input neurons that cannot reach any output
+        for (int i = 0; i < inputs.length; i++) {
+            if (inputs[i] == null) continue;
+
+            if (inputs[i].getOutputConnections().isEmpty()) {
+                // System.out.println("Removing " + inputs[i]);
+                inputs[i] = null;
             }
+        }
 
-            // Remove the neuron itself
-            System.out.println("Removing " + internals[i]);
-            internals[i] = null;
+        // Prune output neurons that cannot be reached by any input
+        for (int i = 0; i < outputs.length; i++) {
+            if (outputs[i] == null) continue;
+
+            if (outputs[i].getInputConnections().isEmpty()) {
+                // System.out.println("Removing " + outputs[i]);
+                outputs[i] = null;
+            }
         }
     }
-
-    // Prune input neurons that cannot reach any output
-    for (int i = 0; i < inputs.length; i++) {
-        if (inputs[i] == null) continue;
-
-        if (inputs[i].getOutputConnections().isEmpty()) {
-            System.out.println("Removing " + inputs[i]);
-            inputs[i] = null;
-        }
-    }
-
-    // Prune output neurons that cannot be reached by any input
-    for (int i = 0; i < outputs.length; i++) {
-        if (outputs[i] == null) continue;
-
-        if (outputs[i].getInputConnections().isEmpty()) {
-            System.out.println("Removing " + outputs[i]);
-            outputs[i] = null;
-        }
-    }
-}
 
     // visualization
 
@@ -252,11 +289,11 @@ public class Brain {
         for (int i = 0; i < inputs.length; i++) {
             if (inputs[i] != null) {
                 // String label = "In" + i + "\\n" + String.format("%.2f", inputs[i].getActivationValue());
-                String label = "In" + i + "\\n" + inputs[i].toShortString();
+                String label = "In" + i + "\\n" + inputs[i].toShortString() + "\\n" + String.format("%.2f", inputs[i].getActivationValue());
                 neuronLabels.put(inputs[i], "In" + i);
                 dot.append("  ").append("In" + i)
                     .append(" [label=\"").append(label)
-                    .append("\", shape=circle, style=filled, color=lightblue, fixedsize=true, width=0.5, fontsize=8];\n");
+                    .append("\", shape=circle, style=filled, color=lightblue, fixedsize=true, width=0.5, fontsize=6];\n");
             }
         }
     
@@ -264,11 +301,11 @@ public class Brain {
         for (int i = 0; i < internals.length; i++) {
             if (internals[i] != null) {
                 // String label = i + "\\n" + String.format("%.2f", internals[i].getActivationValue());
-                String label = "" + i + "\\n" + internals[i].toShortString();
+                String label = "" + i + "\\n" + internals[i].toShortString() + "\\n" + String.format("%.2f", internals[i].getActivationValue());
                 neuronLabels.put(internals[i], "" + i);
                 dot.append("  ").append(i)
                     .append(" [label=\"").append(label)
-                    .append("\", shape=circle, style=filled, color=gray, fixedsize=true, width=0.5, fontsize=8];\n");
+                    .append("\", shape=circle, style=filled, color=gray, fixedsize=true, width=0.5, fontsize=6];\n");
             }
         }
     
@@ -276,35 +313,35 @@ public class Brain {
         for (int i = 0; i < outputs.length; i++) {
             if (outputs[i] != null) {
                 // String label = "Out" + i + "\\n" + String.format("%.2f", outputs[i].getActivationValue());
-                String label = "Out" + i + "\\n" + outputs[i].toShortString();
+                String label = "Out" + i + "\\n" + outputs[i].toShortString() + "\\n" + String.format("%.2f", outputs[i].getActivationValue());
                 neuronLabels.put(outputs[i], "Out" + i);
                 dot.append("  ").append("Out" + i)
                     .append(" [label=\"").append(label)
-                    .append("\", shape=circle, style=filled, color=orange, fixedsize=true, width=0.5, fontsize=8];\n");
+                    .append("\", shape=circle, style=filled, color=orange, fixedsize=true, width=0.5, fontsize=6];\n");
             }
         }
     
         // Add connections for all neurons
         for (Neuron neuron : neuronLabels.keySet()) {
-            for (Map.Entry<Neuron, Float> connection : neuron.getOutputConnections().entrySet()) {
-                Neuron target = connection.getKey();
+            for (Map.Entry<Neuron, Float> connection : neuron.getInputConnections().entrySet()) {
+                Neuron from = connection.getKey();
                 float weight = Float.parseFloat(String.format("%.2f", connection.getValue()));
-                if (neuronLabels.containsKey(target)) {
+                if (neuronLabels.containsKey(from)) {
                     // Determine color and thickness based on weight
                     String color = weight > 0 ? "lightgreen" : "orangered1";
                     float thickness = Math.max(0.1f, Math.min(5.0f, Math.abs(weight) * 2)); // Normalize thickness
     
                     dot.append("  ")
-                        .append(neuronLabels.get(neuron))
+                        .append(neuronLabels.get(from))
                         .append(" -> ")
-                        .append(neuronLabels.get(target))
+                        .append(neuronLabels.get(neuron))
                         .append(" [color=")
                         .append(color)
                         .append(", penwidth=")
                         .append(thickness)
                         .append(", label=\"")
                         .append(weight)
-                        .append("\", fontsize=6")
+                        .append("\", fontsize=8")
                         .append("];\n");
                 }
             }

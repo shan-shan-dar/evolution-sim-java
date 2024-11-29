@@ -23,6 +23,10 @@ dependencies {
 
     // This dependency is used by the application.
     implementation(libs.guava)
+
+    // https://mvnrepository.com/artifact/org.json/json
+    implementation("org.json:json:20090211")
+
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

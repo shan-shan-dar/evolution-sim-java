@@ -23,8 +23,6 @@ public class World{
         this.data = new int[sizeX][sizeY];
     }
 
-    
-
     public boolean isInBounds(Coord pos) {
         return pos.x >= 0 && pos.x < sizeX && pos.y >= 0 && pos.y < sizeY;
     }

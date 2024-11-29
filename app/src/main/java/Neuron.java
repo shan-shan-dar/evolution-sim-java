@@ -3,67 +3,54 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Neuron {
-    private static final float DEFAULT_ACTIVATION = 0.5f;
+    private static final float DEFAULT_ACTIVATION = 0f;
     
-    private float inputSum;
+    private float activation;
 
-    private final ArrayList<Neuron> inputConnections;
-    private final HashMap<Neuron, Float> outputConnections;
+    private final HashMap<Neuron, Float> inputConnections;
+    private final ArrayList<Neuron> outputConnections;
 
     public Neuron(){
-        this.inputSum = arctanh(DEFAULT_ACTIVATION);
-        this.inputConnections = new ArrayList<>();
-        this.outputConnections = new HashMap<>();
+        this.activation = DEFAULT_ACTIVATION;
+        this.inputConnections = new HashMap<>();
+        this.outputConnections = new ArrayList<>();
     }
 
-    public void addInputConnection(Neuron source) {
-        if (!inputConnections.contains(source)) {
-            inputConnections.add(source);
+    public void addOutputConnection(Neuron sink) {
+        if (!outputConnections.contains(sink)) {
+            outputConnections.add(sink);
         }
     }
 
-    public void addOutputConnection(Neuron target, float weight) {
-        outputConnections.put(target, weight);
+    public void addInputConnection(Neuron from, float weight) {
+        inputConnections.put(from, weight);
     }
 
-    public void addToInputSum(float input) {
-        inputSum += input;
-    }
-
-    // ONLY FOR INPUT NEURONS!!
-    public void directSetInputSum(float input) {
-        inputSum = input;
-    }
-
-    public void propagate() {
-        for (Map.Entry<Neuron, Float> connection : outputConnections.entrySet()) {
-            Neuron targetNeuron = connection.getKey();
-            float weight = connection.getValue();
-            targetNeuron.addToInputSum(getActivationValue() * weight);
-        }
+    public void setActivation(float desiredActivation) {
+        activation = desiredActivation;
     }
 
     public float getActivationValue() {
-        return (float) Math.tanh(inputSum);
+        return (float) activation;
     }
 
-    public ArrayList<Neuron> getInputConnections() {
-        return inputConnections;
-    }
-
-    public Map<Neuron, Float> getOutputConnections() {
+    public ArrayList<Neuron> getOutputConnections() {
         return outputConnections;
     }
 
+    public Map<Neuron, Float> getInputConnections() {
+        return inputConnections;
+    }
+
     public void printInputConnections() {
-        for (Neuron entry : inputConnections) {
-            System.out.println(this + "Connected from " + entry);
+        for (Map.Entry<Neuron, Float> entry : inputConnections.entrySet()) {
+            System.out.println(this + "Connected from " + entry + " with weight " + entry.getValue());
         }
     }
 
     public void printOutputConnections() {
-        for (Map.Entry<Neuron, Float> entry : outputConnections.entrySet()) {
-            System.out.println(this + "Connected to " + entry.getKey().hashCode() + " with weight " + entry.getValue());
+        for (Neuron entry : outputConnections) {
+            System.out.println(this + "Connected to " + entry.hashCode());
         }
     }
 
@@ -76,7 +63,12 @@ public class Neuron {
         return "" + this.hashCode();
     }
 
-    public static float arctanh(float x) {
+    public static float activationFunction (float x){
+        return (float) Math.tanh((float)x);
+    }
+
+    public static float reverseActivationFunction(float x) {
+        //arctanh
         if (x <= -1 || x >= 1) {
             throw new IllegalArgumentException("Input for arctanh must be in the range (-1, 1).");
         }

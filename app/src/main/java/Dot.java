@@ -6,26 +6,22 @@ public class Dot {
     private final Genome genome;
     private final Brain brain;
 
-    private boolean alive;
     private Coord position;
     private Coord lastPosition;
+    private int age;
     private int sensingRadius;
     private float responsiveness;
+    private float oscillatorPeriod;
 
     public Dot(int id, Coord birthPlace, Genome genome) throws IOException{
         this.genome = genome;
         this.brain = new Brain(genome);
 
-        alive = true;
         this.id = id;
         this.position = birthPlace;
         lastPosition = birthPlace;
         sensingRadius = 10;
         responsiveness = 0.5f;
-    }
-
-    public void sense() {
-
     }
 
     public int getId() {
@@ -40,20 +36,20 @@ public class Dot {
         return brain;
     }
 
-    public boolean isAlive() {
-        return alive;
-    }
-
-    public void die() {
-        alive = false;
-    }
-
     public Coord getPosition() {
         return position;
     }
     
     public Coord getLastPosition() {
         return lastPosition;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public float getOscillatorPeriod() {
+        return oscillatorPeriod;
     }
 
     public void move(int dx, int dy) {

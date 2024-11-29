@@ -4,13 +4,24 @@ public class TestMain {
 
     public static void main(String[] args) throws IOException, InterruptedException {
         
-        Genome g = Genome.randomGenome();
+        World w = new World(10, 10);
 
-        System.out.println(g);
-        Brain b = new Brain(g);
-        
-        renderDotFile("beforePruning");
+        Genome g = Genome.randomGenome();
+        // System.out.println(g);
+
+        Dot d = new Dot(0, w.findRandomEmptyLocation(), g);
+
+        Brain b = d.getBrain();
+
+        b.sense(d, w);
+        b.toGraphviz("afterSensing1");
+
+        b.feedForward();
+        b.toGraphviz("afterFF1");
+
         renderDotFile("afterPruning");
+        renderDotFile("afterSensing1");
+        renderDotFile("afterFF1");
     }
 
     private static void renderDotFile(String inputDotFile, String outputPngFile) throws IOException, InterruptedException {
